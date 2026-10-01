@@ -1,3 +1,18 @@
+# =====================================================================
+# Datos del proyecto: NUNCA se versionan (superan el límite de GitHub)
+# =====================================================================
+*.gz
+*.txt.gz
+*.parquet
+*.hyper
+*.twbx.bak
+bronze/datos/
+silver/datos/
+gold/datos/
+etl/temp_exploracion/
+*.csv
+!docs/*.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
