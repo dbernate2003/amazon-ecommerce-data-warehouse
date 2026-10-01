@@ -118,7 +118,27 @@ Fórmula: **tamaño = registros × bytes por fila**. Bytes por registro crudo = 
 
 ---
 
-## 5. Reglas del EDA que pasan a la capa Plata
+## 5. Matriz de exploración
+
+Resumen de cada fuente y tabla con la que se construye la bodega (guía de diseño, sección 23). Las filas de Plata son las reales del alcance 2012–2013, medidas en DB-01 (`exploracion_manual/bitacora.md`).
+
+> **Fuente única.** La integración ERP + CRM de la guía no aplica: todo sale de `all.txt.gz` de SNAP.
+
+| Fuente | Tabla / archivo | Filas | Columnas | Clave | Relaciones | Calidad | Observaciones |
+|---|---|---|---|---|---|---|---|
+| SNAP | `all.txt.gz` | 34.686.770 | 10 campos | Ninguna (no hay ID de reseña) | — (archivo plano) | Precio "unknown" 62,1 %; anónimas 14,5 %; HTML; 86.267 duplicados exactos; 150 fechas -1 | 11,7 GB comprimido |
+| Bronce | `bronze.resenas_raw` | 5.627.079 | 13 (10 + `id_carga` + `archivo_origen` y `fecha_ingesta` de auditoría) | `id_carga` | — | Sin validar, por diseño | Todo como texto |
+| Plata | `silver.producto` | 892.006 | 4 | `producto_id` | 1:N con reseña | Precio NULL | `tipo_producto` derivado |
+| Plata | `silver.cliente` | 1.738.966 | 2 | `cliente_id` | 0..1:N con reseña | Las anónimas no crean fila | Nombre más reciente; anónimas del alcance: 5.382 (0,1 %) |
+| Plata | `silver.resena` | ≤ 5.627.079 (después de R10 y R11) | 10 | `resena_id` | FK a producto y cliente | Restricciones R02, R07, R08 y R11 | Conserva el texto |
+
+**De dónde sale cada cifra:** fuente → secciones 1 y 2 de este documento; Bronce → decisión de alcance (sección 3) y `bronze/ddl_bronze.sql`; Plata → `silver/ddl_silver.sql` y conteo DB-01.
+
+**Lectura:** en el alcance, las reseñas anónimas bajan del 14,5 % del dataset completo al 0,1 %. Los porcentajes de la fila SNAP describen todo el archivo, no el recorte.
+
+---
+
+## 6. Reglas del EDA que pasan a la capa Plata
 
 | ID | Regla | Origen del hallazgo |
 |---|---|---|
