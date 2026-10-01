@@ -2,7 +2,7 @@
 
 Diseño dimensional con la metodología Kimball. Alcance acotado a **1 tabla de hechos y 5 dimensiones**, todas construidas desde el mismo archivo fuente (sin fuentes adicionales).
 
-DDL: [`gold/ddl_gold.sql`](../gold/ddl_gold.sql) · Versión para importar en drawSQL: [`gold/drawsql_modelo_estrella.sql`](../gold/drawsql_modelo_estrella.sql)
+DDL: [`gold/ddl_gold.sql`](../../gold/ddl_gold.sql) · Versión para importar en drawSQL: [`gold/drawsql_modelo_estrella.sql`](../../gold/drawsql_modelo_estrella.sql)
 
 ---
 

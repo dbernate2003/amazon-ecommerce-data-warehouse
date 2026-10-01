@@ -1,7 +1,7 @@
 -- =====================================================================
 -- CAPA ORO — esquema estrella (Kimball): 1 tabla de hechos y 5 dimensiones
 -- Grano: una fila = una reseña de un cliente sobre un producto en una fecha
--- Diseño: docs/03_modelo_estrella.md
+-- Diseño: docs/modelado/03_modelo_estrella.md
 -- Motor: PostgreSQL
 -- =====================================================================
 

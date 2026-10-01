@@ -23,7 +23,7 @@ registros se guardan solo hashes de 64 bits en archivos temporales particionados
 Uso:
     python etl/01_exploracion.py --archivo "C:/Users/Dario/Downloads/all.txt.gz"
     python etl/01_exploracion.py --archivo ... --limite 100000        # prueba rápida
-    python etl/01_exploracion.py --archivo ... --salida docs/perfil.json
+    python etl/01_exploracion.py --archivo ... --salida docs/datos/perfil_dataset.json
 """
 
 import argparse

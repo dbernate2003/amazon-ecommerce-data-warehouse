@@ -11,7 +11,7 @@ Las reseñas de Amazon influyen directamente en qué compran los clientes y qué
 Este proyecto construye una **bodega de datos con topología estrella** sobre los **últimos años del dataset (enero 2012 – marzo 2013, 5,6 millones de reseñas)**:
 
 - **Motor de base de datos:** PostgreSQL, con un esquema por capa de la arquitectura Medallion (`bronze`, `silver`, `gold`).
-- **Estructura de tablas:** el archivo plano se normaliza en un modelo relacional de tres tablas (`producto`, `cliente`, `resena`) en la capa Plata, y de ahí se construye el esquema estrella en la capa Oro. El paso a paso está en [`02_modelo_relacional.md`](02_modelo_relacional.md).
+- **Estructura de tablas:** el archivo plano se normaliza en un modelo relacional de tres tablas (`producto`, `cliente`, `resena`) en la capa Plata, y de ahí se construye el esquema estrella en la capa Oro. El paso a paso está en [`02_modelo_relacional.md`](../modelado/02_modelo_relacional.md).
 - **Modelo entidad-relación:** un producto recibe muchas reseñas y un cliente escribe muchas reseñas; la reseña es la entidad central que relaciona a ambos.
 - **Metodología:** Kimball para el diseño dimensional; Medallion para organizar el procesamiento; Tableau para el análisis.
 

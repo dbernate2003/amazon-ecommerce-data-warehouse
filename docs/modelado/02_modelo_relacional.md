@@ -145,7 +145,7 @@ Ver el diagrama de la sección 4. Restricciones que hacen cumplir las reglas del
 
 Ver [`03_modelo_estrella.md`](03_modelo_estrella.md).
 
-DDL completo: [`bronze/ddl_bronze.sql`](../bronze/ddl_bronze.sql) · [`silver/ddl_silver.sql`](../silver/ddl_silver.sql) · [`gold/ddl_gold.sql`](../gold/ddl_gold.sql)
+DDL completo: [`bronze/ddl_bronze.sql`](../../bronze/ddl_bronze.sql) · [`silver/ddl_silver.sql`](../../silver/ddl_silver.sql) · [`gold/ddl_gold.sql`](../../gold/ddl_gold.sql)
 
 ---
 

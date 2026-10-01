@@ -11,7 +11,8 @@ silver/datos/
 gold/datos/
 etl/temp_exploracion/
 *.csv
-!docs/*.csv
+!docs/**/*.csv
+muestra_*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

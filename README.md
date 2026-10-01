@@ -27,7 +27,7 @@ Por tiempo, y con aval del profesor, el proyecto trabaja con **los últimos año
 | 1 ene 2013 – 4 mar 2013 | 1.770.853 |
 | **Total del alcance** | **5.627.079** |
 
-El detalle está en [`docs/01_exploracion_bd.md`](docs/01_exploracion_bd.md).
+El detalle está en [`docs/datos/01_exploracion_bd.md`](docs/datos/01_exploracion_bd.md).
 
 ---
 
@@ -53,13 +53,17 @@ flowchart LR
 
 ## Documentación
 
+La documentación está organizada por área. El índice, con el responsable de cada documento, está en [`docs/README.md`](docs/README.md).
+
 | Documento | Contenido |
 |---|---|
-| [`docs/00_planteamiento.md`](docs/00_planteamiento.md) | Introducción, objetivos, requerimientos, KPI/KGI y objetivos a futuro |
-| [`docs/01_exploracion_bd.md`](docs/01_exploracion_bd.md) | Resultados de la exploración, alcance, volumetría y reglas del EDA |
-| [`docs/02_modelo_relacional.md`](docs/02_modelo_relacional.md) | Motor, estructura de tablas y modelo entidad-relación, con la lógica de la normalización |
-| [`docs/03_modelo_estrella.md`](docs/03_modelo_estrella.md) | Diseño dimensional con Kimball: grano, hechos, 5 dimensiones |
-| [`docs/perfil_dataset.json`](docs/perfil_dataset.json) | Salida completa del perfilamiento sobre los 34,7 M registros |
+| [`docs/negocio/00_planteamiento.md`](docs/negocio/00_planteamiento.md) | Introducción, objetivos, requerimientos, KPI/KGI y objetivos a futuro |
+| [`docs/datos/01_exploracion_bd.md`](docs/datos/01_exploracion_bd.md) | Resultados de la exploración, alcance, volumetría y reglas del EDA |
+| [`docs/datos/perfil_dataset.json`](docs/datos/perfil_dataset.json) | Salida completa del perfilamiento sobre los 34,7 M registros |
+| [`docs/modelado/02_modelo_relacional.md`](docs/modelado/02_modelo_relacional.md) | Motor, estructura de tablas y modelo entidad-relación, con la lógica de la normalización |
+| [`docs/modelado/03_modelo_estrella.md`](docs/modelado/03_modelo_estrella.md) | Diseño dimensional con Kimball: grano, hechos, 5 dimensiones |
+| [`docs/gestion/04_plan_modelo_estrella.md`](docs/gestion/04_plan_modelo_estrella.md) | Plan de la entrega: tema del proyecto y diseño del modelo estrella |
+| [`docs/gestion/05_tareas_modelo_estrella.md`](docs/gestion/05_tareas_modelo_estrella.md) | Tareas de la entrega, repartidas entre los dos integrantes |
 
 ---
 
@@ -67,11 +71,16 @@ flowchart LR
 
 ```
 amazon-ecommerce-data-warehouse/
+├── .github/     CODEOWNERS: responsable de cada carpeta
 ├── bronze/      DDL y carga de la capa Bronce
 ├── silver/      DDL y reglas de limpieza de la capa Plata
 ├── gold/        DDL del esquema estrella (y versión para drawSQL)
 ├── etl/         Scripts de exploración y del pipeline ETL
-├── docs/        Documentación del proyecto
+├── docs/        Documentación por área (índice en docs/README.md)
+│   ├── negocio/     Planteamiento, objetivos y requerimientos
+│   ├── datos/       Exploración, perfil del dataset y linaje
+│   ├── modelado/    Modelo relacional, modelo estrella y diagramas
+│   └── gestion/     Plan y tareas de cada entrega
 └── dashboard/   Capturas y archivos de Tableau
 ```
 
@@ -120,7 +129,7 @@ Commits: `feat:` · `docs:` · `fix:` · `data:`
 ## Cómo reproducir la exploración
 
 ```bash
-python etl/01_exploracion.py --archivo "C:/Users/<usuario>/Downloads/all.txt.gz" --salida docs/perfil_dataset.json
+python etl/01_exploracion.py --archivo "C:/Users/<usuario>/Downloads/all.txt.gz" --salida docs/datos/perfil_dataset.json
 ```
 
 ---

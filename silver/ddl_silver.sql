@@ -1,6 +1,6 @@
 -- =====================================================================
 -- CAPA PLATA — modelo relacional normalizado (3FN), limpio y tipado
--- Explicación del diseño: docs/02_modelo_relacional.md
+-- Explicación del diseño: docs/modelado/02_modelo_relacional.md
 -- Motor: PostgreSQL
 -- =====================================================================
 
