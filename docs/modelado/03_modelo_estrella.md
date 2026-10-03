@@ -10,7 +10,7 @@ DDL: [`gold/ddl_gold.sql`](../../gold/ddl_gold.sql) · Versión para importar en
 
 - **Área:** experiencia del cliente y reputación de productos.
 - **Proceso:** publicación y valoración de reseñas de productos.
-- **Título:** *Análisis de la satisfacción del cliente y la reputación de productos de Amazon a partir de sus reseñas (enero 2012 – marzo 2013).*
+- **Título:** *Análisis de la satisfacción del cliente y la reputación de productos de Amazon a partir de sus reseñas (marzo 2010 – marzo 2013).*
 
 ### Procesos candidatos
 
@@ -20,7 +20,7 @@ Un proceso de negocio se modela como tabla de hechos solo si la fuente registra 
 |---|---|---|
 | Publicación y valoración de reseñas | Sí. Cada registro es una reseña con fecha, producto, cliente, puntaje y votos | **Se elige** |
 | Ventas | No. Ningún campo de cantidad, pedido, total ni ingreso | Descartado: no se puede copiar el `FactVentas` de la guía |
-| Gestión del catálogo y precios | No es un evento. El precio es un atributo fijo de cada producto (un solo precio por producto) y falta en el 62,1 % | Queda como atributo de `dim_producto` |
+| Gestión del catálogo y precios | No es un evento. El precio es un atributo fijo de cada producto (un solo precio por producto) y falta en el 62,1 % del dataset completo | Queda como atributo de `dim_producto` |
 | Votación de utilidad como proceso propio | No. Los votos llegan como un acumulado `a/b` dentro de cada reseña, sin fecha ni autor del voto | Los votos son **medidas de la reseña**, no un evento aparte |
 
 Como hay **un solo proceso**, el modelo es **una estrella con una tabla de hechos**, no una constelación.
@@ -36,7 +36,7 @@ El proceso tiene dos momentos, y cada uno alimenta uno de los KGI definidos en [
 | El cliente **publica** la reseña y califica de 1 a 5 ★ | Satisfacción del cliente | % de reseñas positivas (4-5 ★) | ≥ 80 % | Reseñas con `sentimiento = 'Positiva'` / `SUM(cantidad_resenas)` |
 | La comunidad **valora** la reseña con votos de utilidad | Confianza de la comunidad | % de votos que marcan una reseña como útil | ≥ 70 % | `SUM(votos_utiles) / SUM(votos_totales)` |
 
-Los dos KGI salen de la misma tabla de hechos (`fact_resenas`, una fila por reseña) y usan campos que la fuente sí trae: el puntaje y los votos. Las metas son de referencia y se ajustan al perfilar el recorte 2012–2013.
+Los dos KGI salen de la misma tabla de hechos (`fact_resenas`, una fila por reseña) y usan campos que la fuente sí trae: el puntaje y los votos. Las metas son de referencia y se ajustan al perfilar la historia de 3 años (2010-03-04 a 2013-03-04).
 
 ---
 
@@ -59,10 +59,10 @@ Se elige el nivel más fino disponible. Desde una reseña se puede subir a produ
 
 La fuente no trae un identificador de reseña, así que la unicidad se garantiza en Plata, antes de cargar Oro:
 
-| Regla | Qué elimina | Casos en todo el dataset |
-|---|---|---|
-| R10 | Registros 100 % idénticos | 86.267 |
-| R11 | Repetidos por usuario + producto + fecha (se conserva la primera aparición) | 221.421 |
+| Regla | Qué elimina | Casos en todo el dataset | Casos en la historia de 3 años |
+|---|---|---|---|
+| R10 | Registros 100 % idénticos | 86.267 | *Pendiente DB-02* |
+| R11 | Repetidos por usuario + producto + fecha (se conserva la primera aparición) | 221.421 | *Pendiente DB-02* |
 
 Cada reseña que queda recibe un `resena_id` en `silver.resena`. Ese identificador pasa al hecho como dimensión degenerada: una fila de `fact_resenas` = un `resena_id`.
 
@@ -191,7 +191,7 @@ Cada indicador de [`00_planteamiento.md`](../negocio/00_planteamiento.md) (secci
 
 ### 3.3 Nota sobre los votos acumulados
 
-*Pendiente DB-03.* El campo `review/helpfulness` no trae la fecha de cada voto: son los votos acumulados hasta que SNAP recolectó los datos. Si DB-03 confirma que el % de reseñas con votos baja de 2012 a 2013, las reseñas recientes tuvieron menos tiempo para recibir votos y **comparar la cantidad de votos entre meses no es justo**. En ese caso, la utilidad por mes se analiza con el % de utilidad (proporción), no con `SUM(votos_utiles)`, y se advierte en el dashboard.
+*Pendiente DB-03.* El campo `review/helpfulness` no trae la fecha de cada voto: son los votos acumulados hasta que SNAP recolectó los datos. Si DB-03 confirma que el % de reseñas con votos baja hacia los meses recientes (de 2010 a 2013), las reseñas recientes tuvieron menos tiempo para recibir votos y **comparar la cantidad de votos entre meses no es justo**. En ese caso, la utilidad por mes se analiza con el % de utilidad (proporción), no con `SUM(votos_utiles)`, y se advierte en el dashboard.
 
 ---
 
@@ -199,7 +199,7 @@ Cada indicador de [`00_planteamiento.md`](../negocio/00_planteamiento.md) (secci
 
 Atributos tomados de [`gold/ddl_gold.sql`](../../gold/ddl_gold.sql), la fuente de verdad. Solo Producto y Cliente vienen de una tabla de Plata; Fecha, Calificación y Utilidad nacen de **atributos de la reseña**.
 
-Todas son **SCD tipo 1**: si un atributo cambia (por ejemplo, el nombre de perfil), se sobrescribe; no se guarda historia. Es suficiente para un análisis histórico cerrado (enero 2012 – marzo 2013).
+Todas son **SCD tipo 1**: si un atributo cambia (por ejemplo, el nombre de perfil), se sobrescribe; no se guarda historia. Es suficiente para un análisis histórico cerrado (marzo 2010 – marzo 2013).
 
 ### 4.1 `dim_producto`
 
@@ -210,7 +210,7 @@ Todas son **SCD tipo 1**: si un atributo cambia (por ejemplo, el nombre de perfi
 | Origen | Tabla `silver.producto` (`product/productId`, `product/title`, `product/price`) |
 | Atributos | `producto_sk`, `producto_id`, `titulo`, `tipo_producto`, `precio`, `rango_precio`, `tiene_precio`, `fecha_carga` |
 | Jerarquía | `tipo_producto` → `producto_id`; `rango_precio` → `precio` |
-| Filas | *Pendiente DB-01* (productos distintos del recorte) + fila -1 "Desconocido" |
+| Filas | *Pendiente DB-01* (productos distintos de la historia de 3 años) + fila -1 "Desconocido" |
 | Tratamiento histórico | SCD tipo 1 |
 
 ### 4.2 `dim_cliente`
@@ -222,7 +222,7 @@ Todas son **SCD tipo 1**: si un atributo cambia (por ejemplo, el nombre de perfi
 | Origen | Tabla `silver.cliente` (`review/userId`, `review/profileName`) |
 | Atributos | `cliente_sk`, `cliente_id`, `nombre_perfil`, `es_anonimo`, `fecha_carga` |
 | Jerarquía | No tiene: `es_anonimo` → `cliente_id` sirve como agrupación |
-| Filas | *Pendiente DB-01* (clientes distintos del recorte) + fila -1 "Desconocido" + fila -2 "Anónimo" |
+| Filas | *Pendiente DB-01* (clientes distintos de la historia de 3 años) + fila -1 "Desconocido" + fila -2 "Anónimo" |
 | Tratamiento histórico | SCD tipo 1: se guarda el nombre de perfil más reciente |
 
 ### 4.3 `dim_fecha`
@@ -234,7 +234,7 @@ Todas son **SCD tipo 1**: si un atributo cambia (por ejemplo, el nombre de perfi
 | Origen | Atributo `review/time` → `silver.resena.fecha` (no es una tabla de Plata). El calendario se genera con `generate_series`, no se extrae de la fuente |
 | Atributos | `fecha_sk`, `fecha`, `anio`, `semestre`, `trimestre`, `mes`, `nombre_mes`, `anio_mes`, `dia`, `dia_semana`, `nombre_dia`, `es_fin_semana` |
 | Jerarquía | `anio` → `semestre` → `trimestre` → `mes` → `fecha`; y `dia_semana` → `es_fin_semana` |
-| Filas | 731 (2012–2013 completo) + fila -1 "Desconocida" |
+| Filas | 1.461 (años 2010 a 2013 completos) + fila -1 "Desconocida" = 1.462 |
 | Tratamiento histórico | Estática: no cambia |
 
 ### 4.4 `dim_calificacion`
@@ -271,7 +271,7 @@ Todas son **SCD tipo 1**: si un atributo cambia (por ejemplo, el nombre de perfi
 
 | Situación en Plata | Clave en el hecho |
 |---|---|
-| `cliente_id` NULL (reseña anónima, 14,5 % en el dataset) | `cliente_sk = -2` (Anónimo) |
+| `cliente_id` NULL (reseña anónima: 14,5 % en el dataset completo; el % de la historia de 3 años sale de DB-01) | `cliente_sk = -2` (Anónimo) |
 | Producto, fecha o puntaje sin correspondencia | `-1` (Desconocido) |
 | `votos_totales = 0` | `utilidad_sk = 0` (Sin votos) |
 
@@ -308,12 +308,12 @@ Los 20 requerimientos se responden con las 5 dimensiones; ninguna dimensión sob
 | **Hechos** | `cantidad_resenas`, `votos_utiles`, `votos_totales`, `longitud_texto` (aditivos); `puntaje` (se promedia) | Se guardan las partes que se pueden sumar; los porcentajes se arman al final, para que den bien a cualquier nivel | Guardar porcentajes ya calculados en el hecho |
 | **Dimensiones** | Producto, Cliente, Fecha, Calificación, Utilidad | Las 5 se usan en la matriz de bus y entre todas cubren los 20 requerimientos; ninguna sobra | Categoría, vendedor y ubicación: la fuente no los trae |
 | **Claves** | Subrogadas `*_sk`; `fecha_sk` = YYYYMMDD | La bodega no depende de los IDs de Amazon: si cambian, el modelo sigue igual. La de fecha se lee y se ordena sola | Usar `producto_id` o `cliente_id` como FK |
-| **Faltantes** | -1 Desconocido; -2 Anónimo; utilidad 0 "Sin votos" | El 14,5 % de las reseñas es anónimo y el 32,2 % no tiene votos. Con filas especiales ningún hecho queda sin dimensión y en Tableau se distingue "no quiso identificarse" de "el dato llegó mal" | FK nula en el hecho |
+| **Faltantes** | -1 Desconocido; -2 Anónimo; utilidad 0 "Sin votos" | En el dataset completo, el 14,5 % de las reseñas es anónimo y el 32,2 % no tiene votos (las cifras de la historia de 3 años salen de DB-01 y DB-03). Con filas especiales ningún hecho queda sin dimensión y en Tableau se distingue "no quiso identificarse" de "el dato llegó mal" | FK nula en el hecho |
 | **Histórico** | SCD tipo 1 | El archivo termina en marzo de 2013 y no va a cambiar; guardar historia (tipo 2) agregaría filas sin ninguna pregunta que lo pida (guía, sección 16) | SCD tipo 2 |
 | **Topología** | Estrella | Hay un solo proceso y las dimensiones son pequeñas frente al hecho; menos uniones = dashboards más rápidos | Copo de nieve o constelación |
-| **Gold físico** | Tablas con índices en las FK | El hecho tiene unos 5,6 M de filas y Tableau lo consulta todo el tiempo; una vista recalcularía las uniones en cada consulta (guía, sección 20) | Vistas, como en el video |
+| **Gold físico** | Tablas con índices en las FK | El hecho tiene unos 9,7 M de filas y Tableau lo consulta todo el tiempo; una vista recalcularía las uniones en cada consulta (guía, sección 20) | Vistas, como en el video |
 | **Texto de la reseña** | No entra al hecho, solo `longitud_texto` | Pesaría unos 740 bytes por fila y no se suma ni se filtra; sigue disponible en `silver.resena` | Guardar `resumen` y `texto` en Oro |
-| **Calendario** | `dim_fecha` generada 2012–2013 completa | La dimensión no depende de que haya reseñas ese día, y los días sin reseñas también se ven | Sacar las fechas de las reseñas |
+| **Calendario** | `dim_fecha` generada con los años 2010 a 2013 completos (1.461 días) | La dimensión no depende de que haya reseñas ese día, y los días sin reseñas también se ven | Sacar las fechas de las reseñas |
 
 ### 7.2 Técnicas especiales evaluadas (guía, sección 17)
 

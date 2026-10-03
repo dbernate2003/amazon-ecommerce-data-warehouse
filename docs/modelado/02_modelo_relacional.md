@@ -9,7 +9,7 @@ Cómo se pasa de un archivo plano sin tablas a un modelo relacional normalizado,
 | Criterio | Por qué PostgreSQL |
 |---|---|
 | Costo | Libre y de código abierto |
-| Volumen | Maneja sin problema los 5,6 M de reseñas del alcance y el crecimiento futuro a 34,7 M |
+| Volumen | Maneja sin problema las 9,7 M de reseñas del alcance (2010-03-04 a 2013-03-04) y el crecimiento futuro a 34,7 M |
 | Organización por capas | Un **esquema por capa** Medallion: `bronze`, `silver`, `gold` dentro de la misma base |
 | Carga masiva | El comando `COPY` carga millones de filas desde CSV mucho más rápido que `INSERT` |
 | Integridad | Claves primarias, foráneas, `UNIQUE` y `CHECK` para hacer cumplir las reglas del EDA |
@@ -50,7 +50,7 @@ Una **dependencia funcional** `A → B` significa: si conozco A, conozco B. La e
 
 | Dependencia | Evidencia en la exploración | Conclusión |
 |---|---|---|
-| `producto_id → titulo, precio` | Pares (producto, título) distintos = **2.441.053** = productos distintos. Igual con (producto, precio) | Cada producto tiene **un solo** título y precio |
+| `producto_id → titulo, precio` | En el dataset completo, pares (producto, título) distintos = **2.441.053** = productos distintos. Igual con (producto, precio) | Cada producto tiene **un solo** título y precio |
 | `cliente_id → nombre_perfil` | El nombre de perfil acompaña siempre al mismo userId (se verifica al cargar Plata) | El nombre depende del cliente, no de la reseña |
 | `resena_id → todo lo demás` | Puntaje, votos, fecha y texto cambian en cada reseña | Son atributos propios de la reseña |
 
@@ -72,8 +72,8 @@ El título de un producto ahora se guarda **una vez**, no una vez por reseña.
 
 | Caso | Decisión | Por qué |
 |---|---|---|
-| Reseñas anónimas (`userId = "unknown"`, 14,5 %) | `cliente_id = NULL` en RESENA; la relación con CLIENTE es **opcional** | Si se creara un cliente "unknown", sería un falso cliente con millones de reseñas que distorsionaría los conteos por cliente |
-| Precio `"unknown"` (62 %) | `precio = NULL` | `NULL` significa "no se sabe"; un 0 sería un precio falso |
+| Reseñas anónimas (`userId = "unknown"`, 14,5 % en el dataset completo) | `cliente_id = NULL` en RESENA; la relación con CLIENTE es **opcional** | Si se creara un cliente "unknown", sería un falso cliente con millones de reseñas que distorsionaría los conteos por cliente |
+| Precio `"unknown"` (62 % en el dataset completo) | `precio = NULL` | `NULL` significa "no se sabe"; un 0 sería un precio falso |
 | Nombre de perfil que cambia en el tiempo | Se guarda el más reciente | Evita tener dos filas del mismo cliente |
 | Libros vs. otros productos | `tipo_producto` derivado del formato del ID (ISBN-10 → "Libro") | Da una clasificación útil sin archivos adicionales |
 
