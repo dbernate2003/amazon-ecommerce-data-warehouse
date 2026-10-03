@@ -6,6 +6,74 @@ DDL: [`gold/ddl_gold.sql`](../../gold/ddl_gold.sql) · Versión para importar en
 
 ---
 
+## 0. Tema y proceso de negocio
+
+- **Área:** experiencia del cliente y reputación de productos.
+- **Proceso:** publicación y valoración de reseñas de productos.
+- **Título:** *Análisis de la satisfacción del cliente y la reputación de productos de Amazon a partir de sus reseñas (enero 2012 – marzo 2013).*
+
+### Procesos candidatos
+
+Un proceso de negocio se modela como tabla de hechos solo si la fuente registra **eventos** con **medidas**. Estos son los candidatos y lo que dicen los datos de cada uno:
+
+| Proceso candidato | ¿La fuente lo registra? | Decisión |
+|---|---|---|
+| Publicación y valoración de reseñas | Sí. Cada registro es una reseña con fecha, producto, cliente, puntaje y votos | **Se elige** |
+| Ventas | No. Ningún campo de cantidad, pedido, total ni ingreso | Descartado: no se puede copiar el `FactVentas` de la guía |
+| Gestión del catálogo y precios | No es un evento. El precio es un atributo fijo de cada producto (un solo precio por producto) y falta en el 62,1 % | Queda como atributo de `dim_producto` |
+| Votación de utilidad como proceso propio | No. Los votos llegan como un acumulado `a/b` dentro de cada reseña, sin fecha ni autor del voto | Los votos son **medidas de la reseña**, no un evento aparte |
+
+Como hay **un solo proceso**, el modelo es **una estrella con una tabla de hechos**, no una constelación.
+
+**Por qué no son ventas.** La fuente no registra ventas: no tiene ningún campo de cantidad, pedido ni ingreso. Sin esos datos no hay un evento de venta que identificar ni números que medir. Por eso el proceso que se modela es el que la fuente sí registra: la publicación y valoración de reseñas.
+
+### Relación con los KGI
+
+El proceso tiene dos momentos, y cada uno alimenta uno de los KGI definidos en [`00_planteamiento.md`](../negocio/00_planteamiento.md) (sección 5):
+
+| Momento del proceso | KGI | Definición | Meta de referencia | Se calcula con |
+|---|---|---|---|---|
+| El cliente **publica** la reseña y califica de 1 a 5 ★ | Satisfacción del cliente | % de reseñas positivas (4-5 ★) | ≥ 80 % | Reseñas con `sentimiento = 'Positiva'` / `SUM(cantidad_resenas)` |
+| La comunidad **valora** la reseña con votos de utilidad | Confianza de la comunidad | % de votos que marcan una reseña como útil | ≥ 70 % | `SUM(votos_utiles) / SUM(votos_totales)` |
+
+Los dos KGI salen de la misma tabla de hechos (`fact_resenas`, una fila por reseña) y usan campos que la fuente sí trae: el puntaje y los votos. Las metas son de referencia y se ajustan al perfilar el recorte 2012–2013.
+
+---
+
+## Grano
+
+> Una fila de `fact_resenas` representa una reseña publicada por un cliente (o de forma anónima) sobre un producto en una fecha.
+
+**Quién:** el cliente o un anónimo · **Qué:** el producto · **Cuándo:** la fecha (día).
+
+### Granos considerados
+
+| Grano | ¿Qué permite? | ¿Qué pierde? | Decisión |
+|---|---|---|---|
+| 1 reseña | Todos los requerimientos | — | **Elegido** |
+| Producto × día | Tendencias por producto | Cliente (RQ-08 a RQ-12) y utilidad por reseña (RQ-20) | Descartado |
+
+Se elige el nivel más fino disponible. Desde una reseña se puede subir a producto, cliente o mes sumando; desde un total por producto y día no se puede volver a la reseña.
+
+### Cómo se garantiza que una fila sea una reseña
+
+La fuente no trae un identificador de reseña, así que la unicidad se garantiza en Plata, antes de cargar Oro:
+
+| Regla | Qué elimina | Casos en todo el dataset |
+|---|---|---|
+| R10 | Registros 100 % idénticos | 86.267 |
+| R11 | Repetidos por usuario + producto + fecha (se conserva la primera aparición) | 221.421 |
+
+Cada reseña que queda recibe un `resena_id` en `silver.resena`. Ese identificador pasa al hecho como dimensión degenerada: una fila de `fact_resenas` = un `resena_id`.
+
+**Caso de las anónimas:** no tienen usuario (`cliente_id` es `NULL`), así que R11 no las alcanza. En PostgreSQL, la restricción `UNIQUE (producto_id, cliente_id, fecha)` no considera iguales dos filas con `NULL`. Para ellas solo aplica R10. Dos reseñas anónimas del mismo producto y el mismo día, con texto distinto, se conservan como dos reseñas: pueden ser de dos personas diferentes y no hay forma de saberlo.
+
+### No se mezclan granos
+
+Todas las filas y medidas de `fact_resenas` están al nivel de una reseña. Los totales por mes o por producto no se guardan en este hecho: se calculan en Tableau o, si hicieran falta, irían en otra tabla de agregados. Mezclarlos haría que una misma reseña se contara dos veces al sumar.
+
+---
+
 ## 1. Los 4 pasos de Kimball
 
 | Paso | Decisión |
