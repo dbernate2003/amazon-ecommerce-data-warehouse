@@ -1,164 +1,137 @@
-# Amazon E-Commerce Data Warehouse
+# Data Warehouse de Reseñas de Amazon
 
-End-to-end data warehouse project built on a real 10 GB Amazon
-e-commerce dataset. The goal was to design and implement a complete
-analytical pipeline — from raw data ingestion to business intelligence
-dashboards — applying the practices used in professional data teams.
+Bodega de datos analítica con **topología estrella** construida sobre reseñas reales de productos de Amazon, aplicando la **metodología Kimball** y la **arquitectura Medallion** (Bronce, Plata y Oro) en **PostgreSQL**, con visualización en **Tableau**.
 
----
-
-## What this project covers
-
-This project goes through every stage of a real data warehouse:
-exploring and profiling the source data, estimating storage
-requirements through volumetry analysis, designing the dimensional
-model following Kimball methodology, building a three-layer Medallion
-architecture, documenting the ETL pipeline with full column lineage,
-and delivering a BI dashboard on top of the Gold layer.
+Proyecto académico del curso **Bases de Datos Avanzadas** — Ingeniería de Sistemas, Universidad Popular del Cesar (segundo corte, 2026).
 
 ---
 
-## Tech stack
+## Fuente de datos
 
-| Tool                   | Purpose                                       |
-|------------------------|-----------------------------------------------|
-| SQL (MySQL/PostgreSQL) | Source data exploration and dimensional model |
-| Python / pandas        | ETL transformations and data profiling        |
-| Power BI / Tableau     | Dashboard and business intelligence layer     |
-| Git / GitHub           | Version control and team collaboration        |
-| Notion                 | Project documentation and knowledge base      |
+| Aspecto | Valor |
+|---|---|
+| Dataset | Amazon Reviews — SNAP, Universidad de Stanford (McAuley y Leskovec, 2013) |
+| Archivo | `all.txt.gz` — 11.699.982.319 bytes (~10,9 GiB comprimido) |
+| Formato | Texto plano, bloques `clave: valor` separados por una línea en blanco |
+| Registros totales | **34.686.770 reseñas** (verificado), 10 campos por registro |
+| Productos / usuarios distintos | 2.441.053 / 6.643.669 |
+| Período completo | junio 1995 – 4 de marzo de 2013 |
 
----
+### Alcance del proyecto
 
-## Architecture
+Por tiempo, y con aval del profesor, el proyecto trabaja con **los últimos años del dataset**:
 
-The pipeline follows the Medallion architecture, where each layer
-has a single responsibility and the previous layer is never modified.
+| Recorte | Reseñas |
+|---|---|
+| 1 ene 2012 – 31 dic 2012 | 3.856.226 |
+| 1 ene 2013 – 4 mar 2013 | 1.770.853 |
+| **Total del alcance** | **5.627.079** |
 
-Source — Amazon e-commerce database (~10 GB)
-        |
-     BRONZE
-     Raw data loaded exactly as it comes from the source.
-     Nothing is modified here. If something breaks
-     downstream, we reprocess from this layer.
-        |
-     SILVER
-     Data is cleaned, standardized, and integrated.
-     Surrogate keys are generated. Nulls and
-     inconsistencies are resolved and documented.
-        |
-      GOLD
-     Star schema ready for analysis.
-     This is the only layer exposed to dashboards
-     and end users.
-        |
-   Dashboard
-   Built on the Gold layer.
+El detalle está en [`docs/datos/01_exploracion_bd.md`](docs/datos/01_exploracion_bd.md).
 
 ---
 
-## Dimensional model
+## Arquitectura
 
-The design follows Kimball's four-step methodology:
+```mermaid
+flowchart LR
+    A["all.txt.gz<br>34,7 M reseñas"] -->|"Extracción en streaming<br>filtro 2012–2013"| B
+    subgraph PostgreSQL
+        B["BRONCE<br>bronze.resenas_raw<br>dato crudo, todo texto"] -->|"Limpieza, tipado,<br>deduplicación"| C["PLATA<br>silver.producto · cliente · resena<br>modelo relacional normalizado"]
+        C -->|"Claves subrogadas,<br>filas -1"| D["ORO<br>gold.fact_resenas + 5 dimensiones<br>esquema estrella"]
+    end
+    D -->|"Exportación / conexión"| E["Tableau<br>dashboards"]
+```
 
-1. Identify the business process — e-commerce sales transactions
-2. Define the grain — one row equals one product within one order
-3. Identify the dimensions — Product, Customer, Date, Location, Seller
-4. Identify the facts — quantity sold, revenue, discount applied
-
-Every dimension table uses a surrogate key as its primary key and
-keeps the original source key as a separate attribute for
-traceability. Each dimension includes a row with surrogate key -1
-labeled Unknown, to handle facts that arrive without a matching
-dimension record and avoid null foreign keys in the fact table.
-
-Every metric in the fact table is classified:
-
-- Additive: quantity, revenue — can be summed across all dimensions
-- Semi-additive: inventory levels — can be summed across locations
-  but not across time periods
-- Non-additive: discount rate, unit price — stored as their additive
-  components and recalculated at query or dashboard time
+| Capa | Esquema PostgreSQL | Qué guarda | Regla principal |
+|---|---|---|---|
+| **Bronce** | `bronze` | Las reseñas del alcance tal como llegan, todas las columnas como texto | Nunca se modifica; si algo falla, se reprocesa desde aquí |
+| **Plata** | `silver` | Modelo relacional normalizado (producto, cliente, reseña), limpio y tipado | Aquí se aplican las reglas de calidad del EDA |
+| **Oro** | `gold` | Esquema estrella: `fact_resenas` + 5 dimensiones | Única capa que consume Tableau |
 
 ---
 
-## Repository structure
+## Documentación
 
-    amazon-ecommerce-data-warehouse/
-    |
-    |-- bronze/     Source exploration scripts and raw data load
-    |-- silver/     Cleaning and transformation scripts
-    |-- gold/       Star schema DDL and dimensional model
-    |-- etl/        ETL pipeline scripts and lineage documentation
-    |-- docs/       Volumetry analysis, requirements, data dictionary
-    |-- dashboard/  Dashboard screenshots and report exports
+La documentación está organizada por área. El índice, con el responsable de cada documento, está en [`docs/README.md`](docs/README.md).
 
----
-
-## Branch strategy
-
-| Branch                     | Purpose                                    |
-|----------------------------|--------------------------------------------|
-| main                       | Production — merge only after team review  |
-| dev                        | Integration branch before merging to main  |
-| feature/bronze-exploration | Source profiling and raw data load         |
-| feature/silver-cleaning    | Cleaning rules and surrogate key generation|
-| feature/gold-star-schema   | Dimensional model implementation           |
-| feature/etl-pipeline       | Full ETL pipeline and lineage documentation|
-| feature/bi-dashboard       | Dashboard development and exports          |
-| docs/project-documentation | Written deliverables and analysis          |
+| Documento | Contenido |
+|---|---|
+| [`docs/negocio/00_planteamiento.md`](docs/negocio/00_planteamiento.md) | Introducción, objetivos, requerimientos, KPI/KGI y objetivos a futuro |
+| [`docs/datos/01_exploracion_bd.md`](docs/datos/01_exploracion_bd.md) | Resultados de la exploración, alcance, volumetría y reglas del EDA |
+| [`docs/datos/perfil_dataset.json`](docs/datos/perfil_dataset.json) | Salida completa del perfilamiento sobre los 34,7 M registros |
+| [`docs/modelado/02_modelo_relacional.md`](docs/modelado/02_modelo_relacional.md) | Motor, estructura de tablas y modelo entidad-relación, con la lógica de la normalización |
+| [`docs/modelado/03_modelo_estrella.md`](docs/modelado/03_modelo_estrella.md) | Diseño dimensional con Kimball: grano, hechos, 5 dimensiones |
+| [`docs/gestion/04_plan_modelo_estrella.md`](docs/gestion/04_plan_modelo_estrella.md) | Plan de la entrega: tema del proyecto y diseño del modelo estrella |
+| [`docs/gestion/05_tareas_modelo_estrella.md`](docs/gestion/05_tareas_modelo_estrella.md) | Tareas de la entrega, repartidas entre los dos integrantes |
 
 ---
 
-## Project status
+## Estructura del repositorio
 
-| Phase                          | Status      |
-|--------------------------------|-------------|
-| Source exploration and volumetry | In progress |
-| Conceptual model               | Pending     |
-| Logical model — star schema    | Pending     |
-| ETL pipeline and Medallion     | Pending     |
-| Requirements documentation     | Pending     |
-| BI dashboard                   | Pending     |
+```
+amazon-ecommerce-data-warehouse/
+├── .github/     CODEOWNERS: responsable de cada carpeta
+├── bronze/      DDL y carga de la capa Bronce
+├── silver/      DDL y reglas de limpieza de la capa Plata
+├── gold/        DDL del esquema estrella (y versión para drawSQL)
+├── etl/         Scripts de exploración y del pipeline ETL
+├── docs/        Documentación por área (índice en docs/README.md)
+│   ├── negocio/     Planteamiento, objetivos y requerimientos
+│   ├── datos/       Exploración, perfil del dataset y linaje
+│   ├── modelado/    Modelo relacional, modelo estrella y diagramas
+│   └── gestion/     Plan y tareas de cada entrega
+└── dashboard/   Capturas y archivos de Tableau
+```
 
----
-
-## Volumetry summary
-
-Estimated storage per layer based on source dataset profiling.
-Full calculation with formulas, assumptions, and growth projections
-is documented in docs/volumetry.md.
-
-| Layer  | Current rows | Bytes per row | Current size | Size at 5 years |
-|--------|--------------|---------------|--------------|-----------------|
-| Bronze | TBD          | TBD           | ~10 GB       | TBD             |
-| Silver | TBD          | TBD           | TBD          | TBD             |
-| Gold   | TBD          | TBD           | TBD          | TBD             |
+El archivo `all.txt.gz` **no se versiona** (supera el límite de GitHub); cada integrante lo tiene localmente.
 
 ---
 
-## Key design decisions
+## Stack
 
-**Why star schema over snowflake.** The star schema minimizes the
-number of joins at query time, which directly impacts dashboard
-performance. A snowflake design would only be justified if a
-dimension grew large enough that redundancy became a measurable
-storage problem — which the volumetry analysis does not support here.
-
-**Why surrogate keys.** The source dataset may contain overlapping
-identifiers across systems. Surrogate keys decouple the warehouse
-from the source, making the model stable even if source keys change.
-
-**Why Bronze is never modified.** Treating the raw layer as
-append-only means any transformation error in Silver or Gold can
-be fully reprocessed from the original data without returning to
-the source system.
+| Herramienta | Uso |
+|---|---|
+| Python 3.13 (gzip, pandas) | Exploración en streaming y ETL |
+| PostgreSQL | Motor de las tres capas (esquemas `bronze`, `silver`, `gold`) |
+| Tableau | Dashboards y storytelling |
+| drawSQL | Diagrama del modelo estrella |
+| Git / GitHub | Control de versiones por ramas y Pull Requests |
+| Notion | Plan del proyecto y cronograma de tareas |
 
 ---
 
-## Author
+## Equipo y ramas
 
-Dario — Systems Engineering Student, Universidad Popular del Cesar
-Colombia — Aspiring Data Engineer
+| Integrante | Roles | Ramas |
+|---|---|---|
+| **Dario** | Data Engineer · ETL Developer · PM | `feature/exploracion-bd`, `feature/etl-medallion`, `docs/documentacion`, `dev` |
+| **José** | Arquitecto DW · Analista BI | `feature/modelo-dimensional`, `feature/dashboard` |
 
-Academic project — Bases de Datos Avanzadas course
+Flujo: cada rama abre un Pull Request hacia `dev`, el otro integrante lo revisa y antes de cada sustentación `dev` se integra en `main`.
+Commits: `feat:` · `docs:` · `fix:` · `data:`
+
+---
+
+## Cronograma del segundo corte
+
+| Fecha | Entrega |
+|---|---|
+| 29 sep | Presentación inicial: introducción (motor, tablas, MER), objetivos, requerimientos y explicación de la BD ✅ |
+| 30 sep | Diseño del modelo estrella |
+| 8 oct | Arquitectura Medallion: capas, roles, actividades, herramientas y reglas del EDA |
+| 12 oct | Proceso ETL: herramientas y flujo de extracción, transformación y carga |
+| 15 oct | Visualización: dashboards interactivos, toma de decisiones y storytelling |
+| Final | Documento en PDF con todo el producto |
+
+---
+
+## Cómo reproducir la exploración
+
+```bash
+python etl/01_exploracion.py --archivo "C:/Users/<usuario>/Downloads/all.txt.gz" --salida docs/datos/perfil_dataset.json
+```
+
+---
+
+Proyecto académico — Bases de Datos Avanzadas, Universidad Popular del Cesar.

@@ -1,0 +1,34 @@
+# Responsables de cada parte del repositorio.
+# GitHub pide automáticamente la revisión del responsable cuando un Pull Request toca sus archivos.
+# Si varias reglas coinciden con un archivo, gana la última.
+#
+# Dario Andrés Bernate Cañas · Data Engineer, ETL Developer y PM -> @dbernate2003
+# José Julio Gómez Palmera   · Arquitecto DW y Analista BI       -> jjuliogomez@unicesar.edu.co
+#   GitHub acepta el correo solo si está verificado en la cuenta de José Julio y si él es
+#   colaborador del repositorio. Si no aparece como revisor, cambia el correo por su @usuario.
+
+# Por defecto, los dos (incluye docs/negocio/)
+*                                              @dbernate2003 jjuliogomez@unicesar.edu.co
+
+# Datos y evidencia (Data Engineer)
+/docs/datos/                                   @dbernate2003
+/bronze/                                       @dbernate2003
+/silver/                                       @dbernate2003
+/etl/                                          @dbernate2003
+/exploracion_manual/                           @dbernate2003
+
+# Gestión del proyecto y documentación general (PM)
+/docs/gestion/                                 @dbernate2003
+/docs/README.md                                @dbernate2003
+/README.md                                     @dbernate2003
+/.github/                                      @dbernate2003
+
+# Diseño dimensional (Arquitecto DW)
+/docs/modelado/                                jjuliogomez@unicesar.edu.co
+/docs/modelado/diagramas/estrella_logico.png   @dbernate2003
+
+# Capa Oro: la diseña el Arquitecto y la implementa el Data Engineer
+/gold/                                         jjuliogomez@unicesar.edu.co @dbernate2003
+
+# Visualización (Analista BI)
+/dashboard/                                    jjuliogomez@unicesar.edu.co
