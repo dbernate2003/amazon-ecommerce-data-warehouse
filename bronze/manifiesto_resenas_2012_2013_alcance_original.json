@@ -1,0 +1,41 @@
+{
+  "archivo_origen": "all.txt.gz",
+  "bytes_origen": 11699982319,
+  "filtro": "review/time >= 1325376000 (2012-01-01 00:00 UTC), regla R02",
+  "fecha_extraccion_utc": "2026-10-01T05:03:10+00:00",
+  "registros_leidos": 34686770,
+  "filas_escritas": 5627079,
+  "control_esperado": 5627079,
+  "control_ok": true,
+  "fecha_min": "2012-01-01",
+  "fecha_max": "2013-03-04",
+  "registros_incompletos": 0,
+  "registros_con_nul_eliminado": 0,
+  "registros_con_utf8_reemplazado": 0,
+  "archivo": "resenas_2012_2013.csv.gz",
+  "bytes_archivo": 1256772485,
+  "sha256_csv_sin_comprimir": "09e877cadf127236d5d3d81060816e4d06edc2bb1e83b1104893b006aea9b2b5",
+  "formato": {
+    "tipo": "csv",
+    "codificacion": "utf-8",
+    "separador": ",",
+    "comillas": "todos los campos",
+    "encabezado": true,
+    "compresion": "gzip"
+  },
+  "columnas": [
+    "product_id",
+    "product_title",
+    "product_price",
+    "user_id",
+    "profile_name",
+    "helpfulness",
+    "score",
+    "review_time",
+    "summary",
+    "review_text"
+  ],
+  "tabla_destino": "bronze.resenas_raw",
+  "como_cargar": "Descomprimir y en psql: \\copy bronze.resenas_raw (product_id, product_title, product_price, user_id, profile_name, helpfulness, score, review_time, summary, review_text) FROM '<ruta>/resenas_2012_2013.csv' WITH (FORMAT csv, HEADER true)",
+  "segundos": 636.0
+}
